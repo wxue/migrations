@@ -322,8 +322,12 @@ func (c *Collection) MustRegisterTx(fns ...func(DB) error) {
 	}
 }
 
-func (c *Collection) Migrations() []*Migration {
-	_ = c.discoverSQLMigrations(migrationFile())
+func (c *Collection) Migrations(migrationsPath string) []*Migration {
+	if migrationsPath != "" {
+		_ = c.discoverSQLMigrations(migrationsPath)
+	} else {
+		_ = c.discoverSQLMigrations(migrationFile())
+	}
 
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -335,8 +339,8 @@ func (c *Collection) Migrations() []*Migration {
 	return migrations
 }
 
-func (c *Collection) Run(db DB, a ...string) (oldVersion, newVersion int64, err error) {
-	migrations := c.Migrations()
+func (c *Collection) Run(db DB, migrationsPath string, a ...string) (oldVersion, newVersion int64, err error) {
+	migrations := c.Migrations(migrationsPath)
 	err = validateMigrations(migrations)
 	if err != nil {
 		return
